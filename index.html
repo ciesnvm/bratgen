@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Brat Engine Pro</title>
+  <title>Brat Generator</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -196,15 +196,15 @@
   </div>
 
   <div class="mode-selector">
-    <button class="mode-btn active" id="setManualMode">Manual Text</button>
-    <button class="mode-btn" id="setLyricMode">Synced Lyrics</button>
+    <button class="mode-btn active" id="setManualMode">Text</button>
+    <button class="mode-btn" id="setLyricMode">Lyrics</button>
   </div>
   
   <div class="panel" id="manualControls" style="display: block;">
     <h3 style="margin: 0 0 10px 0; color: #8ACE00;">Type Content</h3>
     <div class="action-block">
       <input type="text" id="manualTextInput" value="brat">
-      <button class="accent" id="saveStaticBtn">Save PNG</button>
+      <button class="accent" id="saveStaticBtn">Save Image</button>
     </div>
   </div>
 
@@ -212,7 +212,7 @@
     <div class="panel">
       <h3 style="margin:0 0 10px 0; color:#8ACE00;">1. Search Song</h3>
       <div class="search-box">
-        <input type="text" id="searchQuery" placeholder="e.g. Charli XCX 360">
+        <input type="text" id="searchQuery" placeholder="e.g. SMOKE IT OFF">
         <button class="accent" id="searchBtn">Find</button>
       </div>
       <div id="status"></div>
@@ -220,7 +220,7 @@
     </div>
 
     <div class="panel" id="lyricCutterPanel" style="display:none;">
-      <h3 style="margin:0 0 5px 0; color:#8ACE00;">2. Drag Range Window</h3>
+      <h3 style="margin:0 0 5px 0; color:#8ACE00;">2. Lyrics Selector Window</h3>
       <div id="startDisplay" class="time-label">Start: [00:00] --</div>
       <div id="endDisplay" class="time-label">End: [00:00] --</div>
       
@@ -230,7 +230,7 @@
         <input type="range" id="endSlider" min="0" max="100" value="20">
       </div>
 
-      <button id="playBtn" class="accent full-btn">▶ Preview Animation</button>
+      <button id="playBtn" class="accent full-btn">▶ Preview</button>
       <button id="exportVideoBtn" class="full-btn" style="background:#fff; color:#000; font-weight:bold; border:none;">💾 Export MP4 Clip</button>
     </div>
   </div>
@@ -527,7 +527,7 @@
       error: (e) => {
         console.error(e);
         btn.disabled = false;
-        btn.innerText = "💾 Export MP4 Clip";
+        btn.innerText = "💾 Export MP4";
       }
     });
 
@@ -598,7 +598,7 @@
     link.click();
 
     btn.disabled = false;
-    btn.innerText = "💾 Export MP4 Clip";
+    btn.innerText = "💾 Export MP4";
     textOverlay.innerText = "brat";
     textFit(textOverlay);
   });
