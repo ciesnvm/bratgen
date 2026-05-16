@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>brat engine</title>
+  <style>
+    /* --- WEB 2.0 GLOBAL RESET & BACKGROUND --- */
+    body {
+      font-family: "Lucida Grande", Tahoma, Arial, sans-serif;
+      text-align: center;
+      background: #e9eff4; /* Soft gray/blue background from the image */
+      background-image: linear-gradient(to bottom, #f5f8fa 0%, #e0e7ed 100%);
+      color: #333;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    #page-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      box-sizing: border-box;
+      min-height: 100vh;
+    }
+
+    /* SQUARE GENERATOR BOX (Kept mostly untouched for the meme, but framed) */
+    #memeContainer {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 90vw;
+      max-width: 360px;
+      aspect-ratio: 1 / 1;
+      background-color: #FFF;
+      margin-bottom: 25px;
+      overflow: hidden;
+      /* Added a subtle frame to fit the Web 2.0 look */
+      border: 4px solid #fff;
+      border-radius: 4px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15), 0 0 0 1px #b0c4d6;
+    }
+
+    #textOverlay {
+      position: absolute;
+      width: 85%;
+      height: 75%;
+      text-align: justify;
+      text-align-last: justify;
+      color: #000;
+      font-family: "Arial Narrow", "Arial", sans-serif;
+      font-size: 120px; 
+      line-height: 0.85; 
+      letter-spacing: -2px;
+      text-transform: lowercase; 
+      filter: blur(1.5px); 
+      transform: scaleX(0.9); 
+    }
+
+    /* --- WEB 2.0 CONTAINERS / PANELS --- */
+    .panel {
+      width: 100%;
+      max-width: 380px;
+      background: linear-gradient(to bottom, #f2f7fc 0%, #dce6f0 100%);
+      padding: 20px;
+      border: 1px solid #9bb2c6;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+      text-align: left;
+      box-shadow: inset 0 1px 0 #fff, 0 3px 6px rgba(0,0,0,0.08);
+    }
+
+    /* --- WEB 2.0 GLOSSY TABS --- */
+    .mode-selector {
+      display: flex;
+      margin-bottom: 15px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-radius: 15px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 10px;
+      font-weight: bold;
+      font-size: 13px;
+      color: #004c8c;
+      /* The classic 50% stop hard gradient */
+      background: linear-gradient(to bottom, #ffffff 0%, #e1e9f0 49%, #c7d6e6 50%, #d8e5f0 100%);
+      border: 1px solid #9bb2c6;
+      cursor: pointer;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+      transition: none; /* Web 2.0 buttons usually just swapped states instantly */
+      margin: 0;
+      font-family: "Lucida Grande", Tahoma, Arial, sans-serif;
+    }
+
+    .mode-btn:first-child {
+      border-radius: 15px 0 0 15px;
+    }
+
+    .mode-btn:last-child {
+      border-radius: 0 15px 15px 0;
+      border-left: none;
+    }
+
+    .mode-btn:hover {
+      background: linear-gradient(to bottom, #ffffff 0%, #ebf2f8 49%, #d2dff0 50%, #e2ecf5 100%);
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(to bottom, #d2e4f3 0%, #b2d0ea 49%, #95bde2 50%, #abcbe9 100%);
+      color: #002d5a;
+      border-color: #7a9bb8;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    /* --- WEB 2.0 INPUT FIELDS --- */
+    .search-box, .action-block {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-family: "Lucida Grande", Tahoma, Arial, sans-serif;
+      /* Inset shadow to look pushed in */
+      border: 1px solid #a3b8cb;
+      border-top-color: #839ab0; 
+      background: #fff;
+      color: #333;
+      outline: none;
+      border-radius: 5px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+    }
+    
+    input:focus {
+      border-color: #6bbbf7;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.06), 0 0 5px rgba(107, 187, 247, 0.5);
+    }
+    
+    /* --- WEB 2.0 GLOSSY ACTION BUTTONS --- */
+    .splat-btn {
+      /* Strong pill shape, bold text, sharp gradient split */
+      background: linear-gradient(to bottom, #fcfdfe 0%, #dfecf7 49%, #bed7ed 50%, #d2e4f3 100%);
+      color: #003a6b;
+      font-weight: bold;
+      font-size: 13px;
+      font-family: "Lucida Grande", Tahoma, Arial, sans-serif;
+      border: 1px solid #8ba8c4;
+      border-radius: 20px; 
+      padding: 8px 20px;
+      cursor: pointer;
+      display: inline-block;
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 1), 
+        0 2px 3px rgba(0, 0, 0, 0.15); 
+      margin: 5px;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    
+    .splat-btn:hover {
+      background: linear-gradient(to bottom, #ffffff 0%, #ebf2f8 49%, #d2dff0 50%, #e2ecf5 100%);
+    }
+
+    .splat-btn:active {
+      background: linear-gradient(to bottom, #bed7ed 0%, #dfecf7 100%);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+      padding-top: 9px; /* Fake a physical push */
+      padding-bottom: 7px;
+    }
+
+    .splat-btn:disabled {
+      background: linear-gradient(to bottom, #f5f5f5 0%, #e8e8e8 49%, #dcdcdc 50%, #e2e2e2 100%);
+      border-color: #c0c0c0;
+      color: #999;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+      cursor: not-allowed;
+      box-shadow: inset 0 1px 0 #fff;
+      padding: 8px 20px !important;
+    }
+
+    .full-row-btn-box {
+      text-align: center;
+      width: 100%;
+      padding: 10px 0 0 0;
+      border-top: 1px solid #c7d6e6;
+      margin-top: 10px;
+    }
+
+    /* Lists and Tracks */
+    #songResults, #lyricControls, #manualControls { display: none; }
+    
+    .song-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #c7d6e6;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      color: #333;
+    }
+    .song-item:first-child {
+      border-radius: 5px 5px 0 0;
+      margin-top: 10px;
+    }
+    .song-item:last-child {
+      border-radius: 0 0 5px 5px;
+      border-bottom: none;
+    }
+    .song-item:hover { 
+      background: #eef5fb; 
+      color: #004c8c;
+    }
+
+    /* Lyrics Box (Looks like an inset text area now) */
+    .lyric-list-view {
+      max-height: 240px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #9bb2c6;
+      border-top-color: #7a9bb8;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+      margin-top: 10px;
+      border-radius: 4px;
+    }
+
+    .lyric-line-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #555;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f4f8;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .lyric-line-item:last-child {
+      border-bottom: none;
+    }
+
+    .lyric-line-item:hover {
+      background: #f4f8fb;
+      color: #000;
+    }
+
+    .lyric-line-item .timestamp {
+      font-size: 10px;
+      color: #999;
+      font-family: monospace;
+    }
+
+    /* Selection Highlight System (Blue highlights for Web 2.0) */
+    .lyric-line-item.start-node, .lyric-line-item.end-node {
+      background: linear-gradient(to bottom, #89bbed 0%, #689fde 100%) !important;
+      color: #fff !important;
+      font-weight: bold;
+      border-bottom: 1px solid #5a8bc2;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    }
+    .lyric-line-item.start-node .timestamp, .lyric-line-item.end-node .timestamp { color: #e0f0ff; }
+
+    .lyric-line-item.mid-range {
+      background: #e1edf8;
+      color: #004c8c;
+    }
+
+    #status { font-size: 11px; color: #666; margin-top: 8px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div id="page-wrapper">
+  
+  <div id="memeContainer">
+    <div id="textOverlay">brat</div>
+  </div>
+
+  <div class="mode-selector">
+    <button class="mode-btn active" id="setManualMode">Manual Text</button>
+    <button class="mode-btn" id="setLyricMode">Synced Lyrics</button>
+  </div>
+  
+  <div class="panel" id="manualControls" style="display: block;">
+    <div class="action-block">
+      <input type="text" id="manualTextInput" value="brat">
+      <button class="splat-btn" id="saveStaticBtn">Grab PNG</button>
+    </div>
+  </div>
+
+  <div id="lyricControls" style="width:100%; max-width:380px;">
+    <div class="panel">
+      <div class="search-box">
+        <input type="text" id="searchQuery" placeholder="Search track...">
+        <button class="splat-btn" id="searchBtn">Find</button>
+      </div>
+      <div id="status"></div>
+      <div id="songResults"></div>
+    </div>
+
+    <div class="panel" id="lyricCutterPanel" style="display:none;">
+      <span style="font-size: 11px; color: #555; font-weight: bold;">Tap start line, then tap end line:</span>
+      
+      <div id="lyricListView" class="lyric-list-view"></div>
+
+      <div class="full-row-btn-box">
+        <button id="playBtn" class="splat-btn" disabled>Preview</button>
+        <button id="exportVideoBtn" class="splat-btn" disabled>Get MP4</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.min.js"></script>
+
+<script>
+  // --- Binary TextFit Engine ---
+  (function() {
+    var defaultSettings = { multiLine: true, minFontSize: 8, maxFontSize: 200 };
+    window.textFit = function(els) {
+      if (typeof els.toArray === "function") els = els.toArray();
+      if (Object.prototype.toString.call(els) !== '[object Array]') els = [els];
+      for (var i = 0; i < els.length; i++) { processItem(els[i], defaultSettings); }
+    };
+    function processItem(el, settings) {
+      var innerSpan, originalHTML = el.innerHTML;
+      var originalWidth = el.getBoundingClientRect().width - parseInt(window.getComputedStyle(el).paddingLeft || 0) - parseInt(window.getComputedStyle(el).paddingRight || 0);
+      var originalHeight = el.getBoundingClientRect().height - parseInt(window.getComputedStyle(el).paddingTop || 0) - parseInt(window.getComputedStyle(el).paddingBottom || 0);
+      if (!originalWidth || !originalHeight) return;
+      if (originalHTML.indexOf('textFitted') === -1) {
+        innerSpan = document.createElement('span'); innerSpan.className = 'textFitted';
+        innerSpan.style.display = 'inline-block'; innerSpan.innerHTML = originalHTML;
+        el.innerHTML = ''; el.appendChild(innerSpan);
+      } else { innerSpan = el.querySelector('span.textFitted'); }
+      var low = settings.minFontSize, high = settings.maxFontSize, size = low;
+      while (low <= high) {
+        var mid = (high + low) >> 1; innerSpan.style.fontSize = mid + 'px';
+        var rect = innerSpan.getBoundingClientRect();
+        if (rect.width <= originalWidth && rect.height <= originalHeight) { size = mid; low = mid + 1; } else { high = mid - 1; }
+      }
+      innerSpan.style.fontSize = size + 'px';
+    }
+  })();
+
+  // --- Runtime State ---
+  let globalRawLines = [];
+  let globalParsedTimeline = [];
+  let playbackAnimationId = null;
+  let selectedStartSeconds = 0;
+  let selectedEndSeconds = 0;
+  let startLineIdx = null;
+  let endLineIdx = null;
+
+  // --- Layout Router ---
+  $('#setManualMode').click(function() {
+    $('.mode-btn').removeClass('active'); $(this).addClass('active');
+    $('#manualControls').show(); $('#lyricControls').hide();
+    textOverlay.innerText = $('#manualTextInput').val(); textFit(textOverlay);
+  });
+  $('#setLyricMode').click(function() {
+    $('.mode-btn').removeClass('active'); $(this).addClass('active');
+    $('#manualControls').hide(); $('#lyricControls').show();
+    textOverlay.innerText = "brat"; textFit(textOverlay);
+  });
+
+  // --- Manual Mode ---
+  document.getElementById('manualTextInput').addEventListener('input', function() {
+    this.value = this.value.toLowerCase();
+    textOverlay.innerText = this.value;
+    textFit(textOverlay);
+  });
+  
+  $('#saveStaticBtn').click(function() {
+    const target = document.getElementById('memeContainer');
+    html2canvas(target, { 
+      backgroundColor: '#FFF', 
+      scale: 2,
+      onclone: (clonedDoc) => {
+        const clonedContainer = clonedDoc.getElementById('memeContainer');
+        clonedContainer.style.boxShadow = 'none';
+        clonedContainer.style.border = 'none';
+      }
+    }).then(canvas => {
+      const blurCanvas = document.createElement('canvas');
+      blurCanvas.width = canvas.width;
+      blurCanvas.height = canvas.height;
+      const bCtx = blurCanvas.getContext('2d');
+      bCtx.filter = 'blur(3px)'; 
+      bCtx.drawImage(canvas, 0, 0);
+
+      const link = document.createElement('a'); 
+      link.download = 'brat.png';
+      link.href = blurCanvas.toDataURL('image/png'); 
+      link.click();
+    });
+  });
+
+  // --- Search Logic ---
+  $('#searchBtn').click(async () => {
+    const q = $('#searchQuery').val().trim(); if (!q) return;
+    $('#status').text("Looking...");
+    $('#songResults').html("").hide(); $('#lyricCutterPanel').hide();
+
+    try {
+      const res = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      const synced = data.filter(t => t.syncedLyrics);
+      if(synced.length === 0) { $('#status').text("No synced lyrics found."); return; }
+
+      $('#status').text("Select a track:");
+      $('#songResults').show();
+      synced.slice(0,3).forEach(track => {
+        const item = $('<div class="song-item"></div>').text(`${track.trackName.toLowerCase()} — ${track.artistName.toLowerCase()}`);
+        item.click(() => loadLrcData(track.syncedLyrics));
+        $('#songResults').append(item);
+      });
+    } catch(e) { $('#status').text("Network error."); }
+  });
+
+  function parseLrcTime(str) {
+    const match = str.match(/\[(\d+):(\d+)\.(\d+)\]/);
+    if (!match) return null;
+    return parseInt(match[1],10)*60 + parseInt(match[2],10) + parseInt(match[3],10)/100;
+  }
+
+  function formatTimeDisplay(secs) {
+    return new Date(secs * 1000).toISOString().substr(14, 5);
+  }
+
+  // --- Interactive List Engine ---
+  function loadLrcData(lrcText) {
+    $('#songResults').hide(); $('#status').text("Ready.");
+    globalRawLines = [];
+    
+    lrcText.split('\n').forEach(line => {
+      const time = parseLrcTime(line);
+      const text = line.replace(/\[\d+:\d+\.\d+\]/, '').trim();
+      if(time !== null && text) globalRawLines.push({ time, text });
+    });
+    globalRawLines.sort((a,b) => a.time - b.time);
+    globalParsedTimeline = generateWordLevelTimeline(globalRawLines);
+
+    const listContainer = $('#lyricListView');
+    listContainer.empty();
+    
+    startLineIdx = null;
+    endLineIdx = null;
+    $('#playBtn, #exportVideoBtn').prop('disabled', true);
+
+    globalRawLines.forEach((line, index) => {
+      const lineItem = $(`
+        <div class="lyric-line-item" data-idx="${index}">
+          <span>${line.text.toLowerCase()}</span>
+          <span class="timestamp">${formatTimeDisplay(line.time)}</span>
+        </div>
+      `);
+      
+      lineItem.click(() => handleLineSelection(index));
+      listContainer.append(lineItem);
+    });
+
+    $('#lyricCutterPanel').show();
+  }
+
+  function handleLineSelection(index) {
+    if (startLineIdx === null || (startLineIdx !== null && endLineIdx !== null)) {
+      startLineIdx = index;
+      endLineIdx = null;
+      $('#playBtn, #exportVideoBtn').prop('disabled', true);
+    } else if (startLineIdx !== null && endLineIdx === null) {
+      if (index >= startLineIdx) {
+        endLineIdx = index;
+        $('#playBtn, #exportVideoBtn').prop('disabled', false);
+      } else {
+        startLineIdx = index;
+      }
+    }
+    renderSelectionHighlights();
+  }
+
+  function renderSelectionHighlights() {
+    $('.lyric-line-item').removeClass('start-node end-node mid-range');
+    if (startLineIdx !== null) {
+      $(`.lyric-line-item[data-idx="${startLineIdx}"]`).addClass('start-node');
+      selectedStartSeconds = globalRawLines[startLineIdx].time;
+    }
+    if (endLineIdx !== null) {
+      $(`.lyric-line-item[data-idx="${endLineIdx}"]`).addClass('end-node');
+      selectedEndSeconds = globalRawLines[endLineIdx].time + 3.0;
+      for (let i = startLineIdx + 1; i < endLineIdx; i++) {
+        $(`.lyric-line-item[data-idx="${i}"]`).addClass('mid-range');
+      }
+    }
+  }
+
+  function generateWordLevelTimeline(linesArray) {
+    let timeline = [];
+    for (let i = 0; i < linesArray.length; i++) {
+      const curr = linesArray[i];
+      const nextTime = (i < linesArray.length - 1) ? linesArray[i+1].time : curr.time + 3.5;
+      const words = curr.text.split(/\s+/).filter(w => w.length > 0);
+      if(words.length === 0) continue;
+      
+      const step = (nextTime - curr.time) / words.length;
+      for (let j = 0; j < words.length; j++) {
+        timeline.push({
+          time: curr.time + (j * step),
+          text: words.slice(0, j + 1).join(' ')
+        });
+      }
+      timeline.push({ time: nextTime - 0.02, text: "" });
+    }
+    return timeline.sort((a,b) => a.time - b.time);
+  }
+
+  // --- Preview Player ---
+  document.getElementById('playBtn').addEventListener('click', () => {
+    if(playbackAnimationId) cancelAnimationFrame(playbackAnimationId);
+    let runStartTime = performance.now();
+    const targetFrames = globalParsedTimeline.filter(f => f.time >= selectedStartSeconds && f.time <= selectedEndSeconds);
+
+    function runPreview() {
+      let elapsed = (performance.now() - runStartTime) / 1000;
+      let targetTime = selectedStartSeconds + elapsed;
+      let activeFrame = null;
+
+      for (let f of targetFrames) {
+        if (targetTime >= f.time) activeFrame = f; else break;
+      }
+      if (activeFrame) { textOverlay.innerText = activeFrame.text; textFit(textOverlay); }
+
+      if (targetTime < selectedEndSeconds) {
+        playbackAnimationId = requestAnimationFrame(runPreview);
+      } else {
+        textOverlay.innerText = "brat"; textFit(textOverlay);
+      }
+    }
+    playbackAnimationId = requestAnimationFrame(runPreview);
+  });
+
+  // --- MP4 ENCODER ENGINE ---
+  document.getElementById('exportVideoBtn').addEventListener('click', async () => {
+    const targetBox = document.getElementById('memeContainer');
+    const targetFrames = globalParsedTimeline.filter(f => f.time >= selectedStartSeconds && f.time <= selectedEndSeconds);
+    if(targetFrames.length === 0) return;
+
+    if (!window.VideoEncoder) {
+      alert("Use a browser that supports WebCodecs (Chrome, Edge, Safari 15.4+).");
+      return;
+    }
+
+    const btn = document.getElementById('exportVideoBtn');
+    btn.disabled = true; btn.innerText = "Checking...";
+
+    const fps = 30;
+    const durationSeconds = selectedEndSeconds - selectedStartSeconds;
+    const totalFramesCount = Math.floor(durationSeconds * fps);
+
+    const codecsToTry = ['avc1.42001f', 'avc1.4d001f', 'avc1.4d0034', 'avc1.64001f'];
+    let chosenCodec = null;
+    for (const codec of codecsToTry) {
+      try {
+        const testConfig = { codec: codec, width: 500, height: 500, bitrate: 2500000, framerate: fps };
+        const support = await VideoEncoder.isConfigSupported(testConfig);
+        if (support.supported) { chosenCodec = codec; break; }
+      } catch (e) {}
+    }
+
+    if (!chosenCodec) {
+      alert("Codec error.");
+      btn.disabled = false; btn.innerText = "Get MP4";
+      return;
+    }
+
+    btn.innerText = "Building...";
+
+    const captureCanvas = document.createElement('canvas');
+    captureCanvas.width = 500; 
+    captureCanvas.height = 500;
+    const ctx = captureCanvas.getContext('2d');
+
+    const muxer = new Mp4Muxer.Muxer({
+      target: new Mp4Muxer.ArrayBufferTarget(),
+      video: { codec: 'avc', width: 500, height: 500 },
+      fastStart: 'in-memory'
+    });
+
+    const encoder = new VideoEncoder({
+      output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+      error: (e) => {
+        console.error(e);
+        btn.disabled = false; btn.innerText = "Get MP4";
+      }
+    });
+
+    encoder.configure({ codec: chosenCodec, width: 500, height: 500, bitrate: 2500000, framerate: fps });
+
+    for (let currentFrameNum = 0; currentFrameNum <= totalFramesCount; currentFrameNum++) {
+      let progress = Math.round((currentFrameNum / totalFramesCount) * 100);
+      btn.innerText = `${progress}%`;
+
+      let simulatedTime = selectedStartSeconds + (currentFrameNum / fps);
+      let activeFrame = null;
+      for (let f of targetFrames) {
+        if (simulatedTime >= f.time) activeFrame = f; else break;
+      }
+      
+      textOverlay.innerText = activeFrame ? activeFrame.text : "";
+      textFit(textOverlay);
+
+      const elementCanvas = await html2canvas(targetBox, { 
+        backgroundColor: '#FFF', 
+        scale: 1.3,
+        onclone: (clonedDoc) => {
+          const clonedContainer = clonedDoc.getElementById('memeContainer');
+          clonedContainer.style.boxShadow = 'none';
+          clonedContainer.style.border = 'none';
+        }
+      });
+      
+      ctx.clearRect(0, 0, 500, 500);
+      ctx.filter = 'blur(1.5px)'; 
+      ctx.drawImage(elementCanvas, 0, 0, 500, 500);
+      ctx.filter = 'none'; 
+      
+      const timestampUs = Math.round((currentFrameNum * 1000000) / fps);
+      const videoFrame = new VideoFrame(captureCanvas, { timestamp: timestampUs });
+      
+      encoder.encode(videoFrame);
+      videoFrame.close();
+
+      if (currentFrameNum % 12 === 0) {
+        await new Promise(r => setTimeout(r, 4));
+      }
+    }
+
+    btn.innerText = "Saving...";
+    await encoder.flush();
+    muxer.finalize();
+
+    const { buffer } = muxer.target;
+    const blob = new Blob([buffer], { type: 'video/mp4' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.download = `clip_${Date.now()}.mp4`;
+    link.href = url;
+    link.click();
+
+    btn.disabled = false;
+    btn.innerText = "Get MP4";
+    textOverlay.innerText = "brat";
+    textFit(textOverlay);
+  });
+
+  // Startup
+  textFit(textOverlay);
+</script>
+</body>
+</html>
